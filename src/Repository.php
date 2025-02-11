@@ -50,9 +50,30 @@ class Repository
             $this->setConnectionName($connection_name);
         }
 
+        if (!isset($this->table_name)) {
+            $this->setTableName($this->getDefaultTableName());
+        }
+
+        if (!isset($this->connection_name)) {
+            $this->setConnectionName($this->getDefaultConnectionName());
+        }
+
         $this->builder = $this->getConnection()->table($this->getTableName());
 
         return $this;
+    }
+
+    public function getDefaultTableName(): string
+    {
+        $namespace = explode('\\', get_called_class());
+        $className = explode('Repository', array_pop($namespace))[0];
+
+        return strtolower(preg_replace("/([a-z])([A-Z])/", "$1_$2", $className));
+    }
+
+    public function getDefaultConnectionName(): string
+    {
+        return config('database.default');
     }
 
     public function getConnection(): Connection
