@@ -3,6 +3,7 @@
 namespace Vendrika105\LaravelRepository;
 
 use Illuminate\Database\Connection;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 class Repository
@@ -13,17 +14,7 @@ class Repository
 
     protected Connection $connection;
 
-    public function getTableName(): string
-    {
-        return $this->table_name;
-    }
-
-    public function setTableName(string $table_name): static
-    {
-        $this->table_name = $table_name;
-
-        return $this;
-    }
+    protected Builder $builder;
 
     public function getConnectionName(): string
     {
@@ -44,8 +35,40 @@ class Repository
         return $this;
     }
 
+    public function getBuilder(): Builder
+    {
+        return $this->builder;
+    }
+
+    public function createBuilder(?string $table_name = null, ?string $connection_name = null): self
+    {
+        if (!is_null($table_name)) {
+            $this->setTableName($table_name);
+        }
+
+        if (!is_null($connection_name)) {
+            $this->setConnectionName($connection_name);
+        }
+
+        $this->builder = $this->getConnection()->table($this->getTableName());
+
+        return $this;
+    }
+
     public function getConnection(): Connection
     {
         return $this->connection;
+    }
+
+    public function getTableName(): string
+    {
+        return $this->table_name;
+    }
+
+    public function setTableName(string $table_name): static
+    {
+        $this->table_name = $table_name;
+
+        return $this;
     }
 }
