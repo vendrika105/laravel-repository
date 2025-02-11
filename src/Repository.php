@@ -119,7 +119,16 @@ class Repository
 
     protected function addGroupClause(array $groups): self
     {
+        foreach ($groups as $column) {
+            $this->getBuilder()->groupBy($this->addColumnPrefix($column));
+        }
+
         return $this;
+    }
+
+    protected function addColumnPrefix(string $column): string
+    {
+        return !str_contains($column, '.') ? $this->getTableName() . '.' . $column : $column;
     }
 
     protected function addOrderClause(array $orders): self
@@ -143,10 +152,5 @@ class Repository
         }
 
         return $this;
-    }
-
-    protected function addColumnPrefix(string $column): string
-    {
-        return !str_contains($column, '.') ? $this->getTableName() . '.' . $column : $column;
     }
 }
