@@ -2,11 +2,16 @@
 
 namespace Vendrika105\LaravelRepository;
 
+use Illuminate\Database\Connection;
+use Illuminate\Support\Facades\DB;
+
 class Repository
 {
     protected string $table_name;
 
     protected string $connection_name;
+
+    protected Connection $connection;
 
     public function getTableName(): string
     {
@@ -29,6 +34,18 @@ class Repository
     {
         $this->connection_name = $connection_name;
 
+        return $this->createConnection();
+    }
+
+    public function createConnection(): static
+    {
+        $this->connection = DB::connection($this->getConnectionName());
+
         return $this;
+    }
+
+    public function getConnection(): Connection
+    {
+        return $this->connection;
     }
 }
