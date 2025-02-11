@@ -35,11 +35,6 @@ class Repository
         return $this;
     }
 
-    public function getBuilder(): Builder
-    {
-        return $this->builder;
-    }
-
     public function createBuilder(?string $table_name = null, ?string $connection_name = null): self
     {
         if (!is_null($table_name)) {
@@ -98,13 +93,26 @@ class Repository
         return $this->addSelectClause($selects)->addWhereClause($wheres)->addOrderClause($orders)->addGroupClause($groups)->addLimitClause($limit)->addOffsetClause($offset);
     }
 
-    protected function addOffsetClause(?int $offsets): self
+    protected function addOffsetClause(?int $offset): self
     {
+        $limitProperty = $this->getBuilder()->unions ? 'unionLimit' : 'limit';
+
+        if ($this->getBuilder()->$limitProperty !== null) {
+            $this->getBuilder()->offset($offset ?? config('repository.default_offset', 0));
+        }
+
         return $this;
     }
 
-    protected function addLimitClause(?int $limits): self
+    public function getBuilder(): Builder
     {
+        return $this->builder;
+    }
+
+    protected function addLimitClause(?int $limit): self
+    {
+        $this->getBuilder()->limit($limit ?? config('repository.default_limit', 10));
+
         return $this;
     }
 
