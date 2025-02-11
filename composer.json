@@ -1,0 +1,19 @@
+{
+    "name": "vendrika105/laravel-repository",
+    "description": "Laravel Repository Built With Query Builder",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Vendrika105\\LaravelRepository\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "vendrika105",
+            "email": "vendrika105@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
