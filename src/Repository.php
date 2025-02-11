@@ -4,6 +4,7 @@ namespace Vendrika105\LaravelRepository;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
 class Repository
@@ -133,6 +134,19 @@ class Repository
 
     protected function addSelectClause(array $selects): self
     {
+        foreach ($selects as $select) {
+            if ($select instanceof Expression) {
+                $this->getBuilder()->addSelect($select);
+                continue;
+            }
+            $this->getBuilder()->addSelect($this->addColumnPrefix($select));
+        }
+
         return $this;
+    }
+
+    protected function addColumnPrefix(string $column): string
+    {
+        return !str_contains($column, '.') ? $this->getTableName() . '.' . $column : $column;
     }
 }
