@@ -92,4 +92,39 @@ class Repository
 
         return $this;
     }
+
+    public function createFindQuery(array $selects = [], array $wheres = [], array $orders = [], array $groups = [], int $limit = null, int $offset = null): static
+    {
+        return $this->addSelectClause($selects)->addWhereClause($wheres)->addOrderClause($orders)->addGroupClause($groups)->addLimitClause($limit)->addOffsetClause($offset);
+    }
+
+    protected function addOffsetClause(?int $offsets): self
+    {
+        return $this;
+    }
+
+    protected function addLimitClause(?int $limits): self
+    {
+        return $this;
+    }
+
+    protected function addGroupClause(array $groups): self
+    {
+        return $this;
+    }
+
+    protected function addOrderClause(array $orders): self
+    {
+        return $this;
+    }
+
+    protected function addWhereClause(array $where): self
+    {
+        return $this;
+    }
+
+    protected function addSelectClause(array $selects): self
+    {
+        return $this;
+    }
 }
