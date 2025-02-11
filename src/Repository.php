@@ -142,6 +142,12 @@ class Repository
 
     protected function addWhereClause(array $where): self
     {
+        foreach ($where as $column => $parameter) {
+            $column = $this->addColumnPrefix($column);
+
+            $this->getBuilder()->where($column, $parameter);
+        }
+
         return $this;
     }
 
