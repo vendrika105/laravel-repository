@@ -133,6 +133,10 @@ class Repository
 
     protected function addOrderClause(array $orders): self
     {
+        foreach ($orders as $column => $direction) {
+            $this->getBuilder()->orderBy($this->addColumnPrefix($column), $direction);
+        }
+
         return $this;
     }
 
