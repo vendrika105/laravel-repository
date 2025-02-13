@@ -37,6 +37,12 @@ class Repository
      */
     protected Builder $builder;
 
+    /**
+     * Indicates whether a join clause has been initialized to the query.
+     *
+     * @var bool
+     */
+    protected bool $join_initialized = false;
 
     /**
      * Create a new instance of the class with the given arguments.
@@ -50,6 +56,59 @@ class Repository
     static public function init(...$args): static
     {
         return new static(...$args);
+    }
+
+    /**
+     * Adds a join clause to the query.
+     *
+     * This method ensures that join clauses are only added once. If a callback is provided,
+     * it will be used to define a custom join clause. Otherwise, the method will apply the default join clause.
+     *
+     * If both a callback and `$with_default_joins` are provided, the callback will be executed first,
+     * followed by the default join clause.
+     *
+     * @param callable|null $callback Optional callback to define a custom join clause.
+     * @param bool $with_default_joins Whether to apply the default join clause after executing the callback.
+     * @return static
+     */
+    public function addJoinClause(?callable $callback = null, bool $with_default_joins = false): static
+    {
+        if ($this->join_initialized) {
+            return $this;
+        }
+
+        $this->join_initialized = true;
+
+        if (is_callable($callback)) {
+            $callback($this->getBuilder());
+        }
+
+        return (!$callback || $with_default_joins) ? $this->useDefaultJoinClause() : $this;
+    }
+
+    /**
+     * Get the active query builder instance.
+     *
+     * @return Builder The query builder instance.
+     */
+    public function getBuilder(): Builder
+    {
+        return $this->builder;
+    }
+
+    /**
+     * Applies the default join clause to the query.
+     *
+     * This method is used internally to add predefined join conditions
+     * when no custom join clause is provided.
+     *
+     * @return static
+     */
+    protected function useDefaultJoinClause(): static
+    {
+        // Todo: Add your default join clause here
+
+        return $this;
     }
 
     /**
@@ -206,16 +265,6 @@ class Repository
         }
 
         return $this;
-    }
-
-    /**
-     * Get the active query builder instance.
-     *
-     * @return Builder The query builder instance.
-     */
-    public function getBuilder(): Builder
-    {
-        return $this->builder;
     }
 
     /**
