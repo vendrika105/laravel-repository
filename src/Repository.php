@@ -59,59 +59,6 @@ class Repository
     }
 
     /**
-     * Adds a join clause to the query.
-     *
-     * This method ensures that join clauses are only added once. If a callback is provided,
-     * it will be used to define a custom join clause. Otherwise, the method will apply the default join clause.
-     *
-     * If both a callback and `$with_default_joins` are provided, the callback will be executed first,
-     * followed by the default join clause.
-     *
-     * @param callable|null $callback Optional callback to define a custom join clause.
-     * @param bool $with_default_joins Whether to apply the default join clause after executing the callback.
-     * @return static
-     */
-    public function addJoinClause(?callable $callback = null, bool $with_default_joins = false): static
-    {
-        if ($this->join_initialized) {
-            return $this;
-        }
-
-        $this->join_initialized = true;
-
-        if (is_callable($callback)) {
-            $callback($this->getBuilder());
-        }
-
-        return (!$callback || $with_default_joins) ? $this->useDefaultJoinClause() : $this;
-    }
-
-    /**
-     * Get the active query builder instance.
-     *
-     * @return Builder The query builder instance.
-     */
-    public function getBuilder(): Builder
-    {
-        return $this->builder;
-    }
-
-    /**
-     * Applies the default join clause to the query.
-     *
-     * This method is used internally to add predefined join conditions
-     * when no custom join clause is provided.
-     *
-     * @return static
-     */
-    protected function useDefaultJoinClause(): static
-    {
-        // Todo: Add your default join clause here
-
-        return $this;
-    }
-
-    /**
      * Get the current database connection name.
      *
      * @return string The name of the current database connection.
@@ -230,24 +177,31 @@ class Repository
     }
 
     /**
-     * Create a query with various clauses.
+     * Creates a query with various clauses.
      *
-     * @param array $selects Columns to select.
-     * @param array $wheres Conditions for the WHERE clause.
-     * @param array $orders Sorting options.
-     * @param array $groups Group by columns.
-     * @param int|null $limit Number of rows to limit.
-     * @param int|null $offset Offset for pagination.
-     * @return static The repository instance.
+     * This method applies select fields, where conditions, order clauses,
+     * group clauses, limit, and offset to the query. Additionally, it allows
+     * for the inclusion of join clauses if specified.
+     *
+     * @param array $selects Columns to be selected in the query.
+     * @param array $wheres Conditions to filter the query results.
+     * @param array $orders Sorting conditions for the query.
+     * @param array $groups Grouping conditions for the query.
+     * @param int|null $limit The maximum number of records to retrieve.
+     * @param int|null $offset The number of records to skip before retrieving results.
+     * @param bool $with_join_clause Whether to include join clauses in the query (default: true).
+     * @return static The repository instance with the query applied.
      */
-    public function createFindQuery(array $selects = [], array $wheres = [], array $orders = [], array $groups = [], int $limit = null, int $offset = null): static
+    public function createFindQuery(array $selects = [], array $wheres = [], array $orders = [], array $groups = [], int $limit = null, int $offset = null, bool $with_join_clause = true): static
     {
-        return $this->addSelectClause($selects)
+        $this->addSelectClause($selects)
             ->addWhereClause($wheres)
             ->addOrderClause($orders)
             ->addGroupClause($groups)
             ->addLimitClause($limit)
             ->addOffsetClause($offset);
+
+        return $with_join_clause ? $this->addJoinClause() : $this;
     }
 
     /**
@@ -265,6 +219,16 @@ class Repository
         }
 
         return $this;
+    }
+
+    /**
+     * Get the active query builder instance.
+     *
+     * @return Builder The query builder instance.
+     */
+    public function getBuilder(): Builder
+    {
+        return $this->builder;
     }
 
     /**
@@ -348,6 +312,49 @@ class Repository
             }
             $this->getBuilder()->addSelect($this->addColumnPrefix($select));
         }
+        return $this;
+    }
+
+    /**
+     * Adds a join clause to the query.
+     *
+     * This method ensures that join clauses are only added once. If a callback is provided,
+     * it will be used to define a custom join clause. Otherwise, the method will apply the default join clause.
+     *
+     * If both a callback and `$with_default_joins` are provided, the callback will be executed first,
+     * followed by the default join clause.
+     *
+     * @param callable|null $callback Optional callback to define a custom join clause.
+     * @param bool $with_default_joins Whether to apply the default join clause after executing the callback.
+     * @return static
+     */
+    public function addJoinClause(?callable $callback = null, bool $with_default_joins = false): static
+    {
+        if ($this->join_initialized) {
+            return $this;
+        }
+
+        $this->join_initialized = true;
+
+        if (is_callable($callback)) {
+            $callback($this->getBuilder());
+        }
+
+        return (!$callback || $with_default_joins) ? $this->useDefaultJoinClause() : $this;
+    }
+
+    /**
+     * Applies the default join clause to the query.
+     *
+     * This method is used internally to add predefined join conditions
+     * when no custom join clause is provided.
+     *
+     * @return static
+     */
+    protected function useDefaultJoinClause(): static
+    {
+        // Todo: Add your default join clause here
+
         return $this;
     }
 }
