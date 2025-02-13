@@ -17,6 +17,20 @@ class Repository
 
     protected Builder $builder;
 
+    /**
+     * Create a new instance of the class with the given arguments.
+     *
+     * This method acts as a static constructor, allowing for
+     * easy instantiation while passing arguments to the class constructor.
+     *
+     * @param mixed ...$args Arguments to be passed to the constructor.
+     * @return static A new instance of the class.
+     */
+    static public function init(...$args): static
+    {
+        return new static(...$args);
+    }
+
     public function getConnectionName(): string
     {
         return $this->connection_name;
