@@ -3,8 +3,11 @@
 namespace Vendrika105\LaravelRepository;
 
 use Illuminate\Database\Connection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Expression;
+use Illuminate\Database\RecordNotFoundException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class Repository
@@ -177,6 +180,51 @@ class Repository
     }
 
     /**
+     * @param int $id
+     * @param array $selects
+     * @return object|null
+     */
+    public function find(int $id, array $selects = []): ?object
+    {
+        return $this->first(selects: $selects, wheres: ['id' => $id]);
+    }
+
+    /**
+     * Retrieves the first record that matches the given conditions.
+     *
+     * This method constructs a query with the specified select fields,
+     * where conditions, order clauses, group clauses, and offset.
+     * It also ensures that necessary join clauses are applied before executing the query.
+     *
+     * @param array $selects Columns to be selected in the query.
+     * @param array $wheres Conditions to filter the query results.
+     * @param array $orders Sorting conditions for the query.
+     * @param array $groups Grouping conditions for the query.
+     * @param int|null $offset The number of records to skip before retrieving the first result.
+     * @return object|null The first matching record as an object, or null if no results are found.
+     */
+    public function first(array $selects = [], array $wheres = [], array $orders = [], array $groups = [], int $offset = null): ?object
+    {
+        return $this->createFindQuery(
+            selects: $selects,
+            wheres: $wheres,
+            orders: $orders,
+            groups: $groups,
+            offset: $offset
+        )->getBuilder()->first();
+    }
+
+    /**
+     * Get the active query builder instance.
+     *
+     * @return Builder The query builder instance.
+     */
+    public function getBuilder(): Builder
+    {
+        return $this->builder;
+    }
+
+    /**
      * Creates a query with various clauses.
      *
      * This method applies select fields, where conditions, order clauses,
@@ -219,16 +267,6 @@ class Repository
         }
 
         return $this;
-    }
-
-    /**
-     * Get the active query builder instance.
-     *
-     * @return Builder The query builder instance.
-     */
-    public function getBuilder(): Builder
-    {
-        return $this->builder;
     }
 
     /**
@@ -356,5 +394,105 @@ class Repository
         // Todo: Add your default join clause here
 
         return $this;
+    }
+
+    /**
+     * @param int $id
+     * @param array $selects
+     * @return Collection|Model
+     * @throws RecordNotFoundException If no matching record is found.
+     *
+     */
+    public function findOrFail(int $id, array $selects = []): Model|Collection
+    {
+        return $this->firstOrFail(selects: $selects, wheres: ['id' => $id]);
+    }
+
+    /**
+     * Retrieves the first record that matches the given conditions or fails.
+     *
+     * This method constructs a query with the specified select fields,
+     * where conditions, order clauses, group clauses, and offset.
+     * It ensures that necessary join clauses are applied before executing the query.
+     * If no matching record is found, an exception will be thrown.
+     *
+     * @param array $selects Columns to be selected in the query.
+     * @param array $wheres Conditions to filter the query results.
+     * @param array $orders Sorting conditions for the query.
+     * @param array $groups Grouping conditions for the query.
+     * @param int|null $offset The number of records to skip before retrieving the first result.
+     * @return object The first matching record.
+     *
+     * @throws RecordNotFoundException If no matching record is found.
+     */
+    public function firstOrFail(array $selects = [], array $wheres = [], array $orders = [], array $groups = [], int $offset = null): object
+    {
+        return $this->createFindQuery(
+            selects: $selects,
+            wheres: $wheres,
+            orders: $orders,
+            groups: $groups,
+            offset: $offset
+        )->getBuilder()->firstOrFail();
+    }
+
+    /**
+     * Retrieve data along with the total count before applying pagination.
+     *
+     * This method first counts the total number of records matching the query,
+     * then applies pagination (limit and offset) before fetching the data.
+     *
+     * @param array $selects Columns to select.
+     * @param array $wheres Conditions for the WHERE clause.
+     * @param array $orders Sorting options.
+     * @param array $groups Group by columns.
+     * @param int|null $limit Number of rows to limit. If null, no limit is applied.
+     * @param int|null $offset Offset for pagination. If null, defaults to zero.
+     * @return array{data: Collection, total: int} Contains 'data' (collection of results) and 'total' (total number of matching records).
+     */
+    public function getWithTotal(array $selects = [], array $wheres = [], array $orders = [], array $groups = [], int $limit = null, int $offset = null): array
+    {
+        $query = $this->createFindQuery(
+            selects: $selects,
+            wheres: $wheres,
+            orders: $orders,
+            groups: $groups,
+        )->getBuilder();
+
+        $total = $query->count();
+
+        $query->limit($limit);
+        $query->offset($offset);
+
+        return [
+            'data' => $query->get(),
+            'total' => $total,
+        ];
+    }
+
+    /**
+     * Retrieve a collection of records based on the query criteria.
+     *
+     * This method builds a query with optional filters, ordering, grouping,
+     * and pagination, then retrieves the results as a collection.
+     *
+     * @param array $selects Columns to select.
+     * @param array $wheres Conditions for the WHERE clause.
+     * @param array $orders Sorting options.
+     * @param array $groups Group by columns.
+     * @param int|null $limit Number of rows to limit. If null, no limit is applied.
+     * @param int|null $offset Offset for pagination. If null, defaults to zero.
+     * @return Collection A collection of query results.
+     */
+    public function get(array $selects = [], array $wheres = [], array $orders = [], array $groups = [], int $limit = null, int $offset = null): Collection
+    {
+        return $this->createFindQuery(
+            selects: $selects,
+            wheres: $wheres,
+            orders: $orders,
+            groups: $groups,
+            limit: $limit,
+            offset: $offset
+        )->getBuilder()->get();
     }
 }
